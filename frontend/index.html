@@ -902,7 +902,9 @@
             'AB+': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']
         };
 
-        const API_BASE_URL = 'http://localhost:8080/api';
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8080/api'
+            : 'https://bloodlink-backend-im81.onrender.com/api';
         let isLiveApi = false;
         let mockDonors = [];
         let mockRequests = [];
@@ -915,7 +917,6 @@
             setupToggleListeners();
             initializeMockData();
             checkApiConnection();
-            checkCoordinatorStatus();
         });
 
         // Setup sidebar tabs
