@@ -902,9 +902,18 @@
             'AB+': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']
         };
 
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8080/api'
-            : 'https://bloodlink-backend-im81.onrender.com/api';
+        let API_BASE_URL = 'https://bloodlink-backend-im81.onrender.com/api';
+        if (window.location.protocol === 'file:') {
+            API_BASE_URL = 'http://localhost:8080/api';
+        } else if (
+            window.location.hostname === 'localhost' || 
+            window.location.hostname === '127.0.0.1' ||
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('10.') ||
+            window.location.hostname.startsWith('172.')
+        ) {
+            API_BASE_URL = `http://${window.location.hostname}:8080/api`;
+        }
         let isLiveApi = false;
         let mockDonors = [];
         let mockRequests = [];
