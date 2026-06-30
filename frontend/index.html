@@ -960,6 +960,15 @@
                 return;
             }
 
+            if (!isLiveApi) {
+                // Offline mode fake OTP
+                pendingLoginEmail = email;
+                closeDonorLoginModal();
+                openOtpModal(email);
+                showAlert('Offline Mode: Your Mock OTP is 1234', 'success');
+                return;
+            }
+
             try {
                 // Send Email OTP via backend API
                 const response = await fetch(`${API_BASE_URL}/otp/send?email=${encodeURIComponent(email)}`, {
@@ -1086,6 +1095,27 @@
                 return;
             }
 
+            if (!isLiveApi) {
+                if (code === '1234') {
+                    closeOtpModal();
+                    sessionStorage.setItem('donor_verified_email', pendingLoginEmail);
+                    
+                    // Pre-fill and lock the email input on the registration form
+                    const emailInput = document.getElementById('donorEmail');
+                    if (emailInput) {
+                        emailInput.value = pendingLoginEmail;
+                        emailInput.readOnly = true;
+                        emailInput.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                    }
+                    
+                    switchTab('register');
+                    checkExistingDonorAndSetupForm(pendingLoginEmail);
+                } else {
+                    showAlert('Invalid OTP. Please enter 1234 for Offline Mode.', 'error');
+                }
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_BASE_URL}/otp/verify?email=${encodeURIComponent(pendingLoginEmail)}&code=${code}`, {
                     method: 'POST'
@@ -1100,20 +1130,18 @@
                     if (emailInput) {
                         emailInput.value = pendingLoginEmail;
                         emailInput.readOnly = true;
+                        emailInput.style.backgroundColor = 'rgba(255,255,255,0.05)';
                     }
                     
-                    showAlert('Identity verified successfully! Access granted.', 'success');
-                    
-                    // Fetch existing donor and setup form
-                    await checkExistingDonorAndSetupForm(pendingLoginEmail);
-                    
                     switchTab('register');
+                    checkExistingDonorAndSetupForm(pendingLoginEmail);
                 } else {
-                    showAlert('Incorrect or expired OTP code. Please try again.', 'error');
+                    const data = await response.json();
+                    showAlert(data.message || 'Invalid OTP. Please try again.', 'error');
                 }
             } catch (err) {
                 console.error('Error verifying OTP:', err);
-                showAlert('Failed to connect to backend server for verifying OTP.', 'error');
+                showAlert('Failed to connect to backend server for OTP verification.', 'error');
             }
         }
 
